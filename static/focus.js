@@ -1,6 +1,6 @@
 const API = {
     organizationList: "/orgsList",
-    analytics: "/api3/analytics",
+    analytics: "/api3/analitics",
     orgReqs: "/api3/reqBase",
     buhForms: "/api3/buh",
 };
@@ -25,22 +25,17 @@ async function run() {
     }
 }
 
-
 run();
 
 function sendRequest(url) {
-
     return fetch(url)
         .then(response => {
             if (!response.ok) {
-                throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+                alert(`Ошибка: ${response.status} ${response.statusText}`);
             }
             return response.json();
-        }).catch(console.error);
+        });
 }
-
-
-
 
 function reqsToMap(requisites) {
     return requisites.reduce((acc, item) => {
