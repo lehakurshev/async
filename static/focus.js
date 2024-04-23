@@ -6,23 +6,20 @@ const API = {
 };
 
 async function run() {
-    try {
-        const orgOgrns = await sendRequest(API.organizationList);
-        const ogrns = orgOgrns.join(",");
+    const orgOgrns = await sendRequest(API.organizationList);
+    const ogrns = orgOgrns.join(",");
 
-        const requisites = await sendRequest(`${API.orgReqs}?ogrn=${ogrns}`);
-        const orgsMap = reqsToMap(requisites);
+    const [requisites, analytics, buh] =
+        await Promise.all([
+            sendRequest(`${API.orgReqs}?ogrn=${ogrns}`),
+            sendRequest(`${API.analytics}?ogrn=${ogrns}`),
+            sendRequest(`${API.buhForms}?ogrn=${ogrns}`),
+        ]);
 
-        const analytics = await sendRequest(`${API.analytics}?ogrn=${ogrns}`);
-        addInOrgsMap(orgsMap, analytics, "analytics");
-
-        const buhForms = await sendRequest(`${API.buhForms}?ogrn=${ogrns}`);
-        addInOrgsMap(orgsMap, buhForms, "buhForms");
-
-        render(orgsMap, orgOgrns);
-    } catch (error) {
-        console.error("Ошибка при выполнении запросов:", error);
-    }
+    const orgsMap = reqsToMap(requisites);
+    addInOrgsMap(orgsMap, analytics, "analytics");
+    addInOrgsMap(orgsMap, buh, "buhForms");
+    render(orgsMap, orgOgrns);
 }
 
 run();
@@ -31,11 +28,15 @@ function sendRequest(url) {
     return fetch(url)
         .then(response => {
             if (!response.ok) {
-                alert(`Ошибка: ${response.status} ${response.statusText}`);
+                throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
             }
             return response.json();
+        })
+        .catch(error => {
+            alert(error);
         });
 }
+
 
 function reqsToMap(requisites) {
     return requisites.reduce((acc, item) => {
