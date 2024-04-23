@@ -9,36 +9,37 @@ async function run() {
     try {
         const orgOgrns = await sendRequest(API.organizationList);
         const ogrns = orgOgrns.join(",");
+
         const requisites = await sendRequest(`${API.orgReqs}?ogrn=${ogrns}`);
         const orgsMap = reqsToMap(requisites);
+
         const analytics = await sendRequest(`${API.analytics}?ogrn=${ogrns}`);
         addInOrgsMap(orgsMap, analytics, "analytics");
+
         const buhForms = await sendRequest(`${API.buhForms}?ogrn=${ogrns}`);
         addInOrgsMap(orgsMap, buhForms, "buhForms");
+
         render(orgsMap, orgOgrns);
     } catch (error) {
         console.error("Ошибка при выполнении запросов:", error);
     }
 }
 
+
 run();
 
 function sendRequest(url) {
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("GET", url, true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                if (xhr.status === 200) {
-                    resolve(JSON.parse(xhr.response));
-                } else {
-                    reject(new Error("Request failed"));
-                }
+
+    return fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
             }
-        };
-        xhr.send();
-    });
+            return response.json();
+        }).catch(console.error);
 }
+
+
 
 
 function reqsToMap(requisites) {
@@ -89,7 +90,7 @@ function renderOrganization(orgInfo, template, container) {
                 orgInfo.buhForms[orgInfo.buhForms.length - 1].form2[0] &&
                 orgInfo.buhForms[orgInfo.buhForms.length - 1].form2[0]
                     .endValue) ||
-                0
+            0
         );
     } else {
         money.textContent = "—";
